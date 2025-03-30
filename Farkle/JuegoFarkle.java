@@ -119,8 +119,7 @@ public class JuegoFarkle {
 
         //poner su ubicacion
         int index = 0;
-        for(int i = 0;i<2;i++)
-        {
+        for(int i = 0;i<2;i++){
             for(int j = 0;j<3;j++)
             {
                 labelsDados.get(index).setBounds(64 + 200*i,64 + 100*j,64,64);
@@ -182,15 +181,20 @@ public class JuegoFarkle {
     }
 
     // lambdas goes Brrrrrr!!!
-    public void sumarPuntos()
+    public void sumarPuntos()   //Cambios por la funcion isAValidPlay ya que esa funcion deberia estar en esta clase y no en dado pq solo puede verificar un dado
     {
         actualizarCheckboxes();
         desactivarCheckboxInvalidas();
         actualizarCheckboxes();
-        jugadores.get(turnoQuien).setPuntos(dados.stream().
-        filter(a -> a.isLocked()).filter(a -> a.isAValidPlay()).map(a -> a.getValor()).
-        reduce(0,(a,b) -> a+b)); 
-        disableCheckBoxes();
+        if(hayJugadaValida(dados)){
+            jugadores.get(turnoQuien).setPuntos(dados.stream().
+                    filter(a -> a.isLocked()).map(a -> a.getValor()).
+                    reduce(0,(a,b) -> a+b));
+            disableCheckBoxes();
+        }else{
+            System.out.println("No gano puntos.");
+        }
+
     }
 
     public void actualizarCheckboxes()
@@ -203,8 +207,9 @@ public class JuegoFarkle {
         dados.get(5).setLocked(dado6Check.isSelected());
     }
 
-    public void desactivarCheckboxInvalidas()
+    public void desactivarCheckboxInvalidas() //Esta tambien se tiene que cambiar por la funcion.
     {
+
         dado1Check.setSelected(dados.get(0).isAValidPlay());
         dado2Check.setSelected(dados.get(1).isAValidPlay());
         dado3Check.setSelected(dados.get(2).isAValidPlay());
