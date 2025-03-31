@@ -31,12 +31,16 @@ public class JuegoFarkle {
     ArrayList<JLabel> labelsDados = new ArrayList<JLabel>();
 
     // Checkboxes para loquear dados
+    /* 
     JCheckBox dado1Check = new JCheckBox();
     JCheckBox dado2Check = new JCheckBox();
     JCheckBox dado3Check = new JCheckBox();
     JCheckBox dado4Check = new JCheckBox();
     JCheckBox dado5Check = new JCheckBox();
     JCheckBox dado6Check = new JCheckBox();
+    */
+    ArrayList<JCheckBox> checkBoxs = new ArrayList<>();
+
 
     // Labels para la informacion Actual
     JLabel turnoJugador = new JLabel();
@@ -131,19 +135,37 @@ public class JuegoFarkle {
         labelsDados.stream().forEach(a -> panelCentral.add(a));
 
         // colocar las checkboxes
+        int crear = 0;
+        for(int i = 0;i<2;i++)
+        {
+            for(int j = 0;j<3;j++)
+            {
+                checkBoxs.add(new JCheckBox());
+                checkBoxs.get(crear).setBounds(128+(200*i),64+(100*j),25,25);
+                crear ++;
+            }
+        }
+        /* 
         dado1Check.setBounds(128,64,25,25);
         dado2Check.setBounds(128,164,25,25);
         dado3Check.setBounds(128,264,25,25);
         dado4Check.setBounds(328,64,25,25);
         dado5Check.setBounds(328,164,25,25);
         dado6Check.setBounds(328,264,25,25);
-
+        */
+        
+        for(int i = 0;i<checkBoxs.size();i++)
+        {
+            panelCentral.add(checkBoxs.get(i));
+        }
+        /* 
         panelCentral.add(dado1Check);
         panelCentral.add(dado2Check);
         panelCentral.add(dado3Check);
         panelCentral.add(dado4Check);
         panelCentral.add(dado5Check);
         panelCentral.add(dado6Check);
+        */
 
         //Labels de informacion
         turnoJugador.setText("Jugador: ");
@@ -168,6 +190,7 @@ public class JuegoFarkle {
 
     public void rollDados()
     {
+        actualizarCheckboxes();
         dados.stream().filter(a -> !a.isLocked()).forEach(a -> a.lanzar());
         dados.stream().forEach(a -> System.out.println(a.getValor()));
         labelDado1.setIcon(dados.get(0).getIcon());
@@ -195,22 +218,35 @@ public class JuegoFarkle {
 
     public void actualizarCheckboxes()
     {
+        /* 
         dados.get(0).setLocked(dado1Check.isSelected());
         dados.get(1).setLocked(dado2Check.isSelected());
         dados.get(2).setLocked(dado3Check.isSelected());
         dados.get(3).setLocked(dado4Check.isSelected());
         dados.get(4).setLocked(dado5Check.isSelected());
         dados.get(5).setLocked(dado6Check.isSelected());
+        */
+        for(int i = 0;i<dados.size();i++)
+        {
+            dados.get(i).setLocked(checkBoxs.get(i).isSelected());
+        }
     }
 
     public void desactivarCheckboxInvalidas()
     {
+        /* 
         dado1Check.setSelected(dados.get(0).isAValidPlay());
         dado2Check.setSelected(dados.get(1).isAValidPlay());
         dado3Check.setSelected(dados.get(2).isAValidPlay());
         dado4Check.setSelected(dados.get(3).isAValidPlay());
         dado5Check.setSelected(dados.get(4).isAValidPlay());
         dado6Check.setSelected(dados.get(5).isAValidPlay());
+        */
+        // revisar que sea jugada valida y no este seleccionado
+        for(int i = 0; i<checkBoxs.size();i++)
+        {
+            checkBoxs.get(i).setSelected(dados.get(i).isAValidPlay() && dados.get(i).isLocked());
+        }
     }
 
     public void turnos()
@@ -226,12 +262,18 @@ public class JuegoFarkle {
 
     public void disableCheckBoxes()
     {
+        /* 
         dado1Check.setEnabled(!dado1Check.isSelected());
         dado2Check.setEnabled(!dado2Check.isSelected());
         dado3Check.setEnabled(!dado3Check.isSelected());
         dado4Check.setEnabled(!dado4Check.isSelected());
         dado5Check.setEnabled(!dado5Check.isSelected());
         dado6Check.setEnabled(!dado6Check.isSelected());
+        */
+        for(int i = 0;i<checkBoxs.size();i++)
+        {
+            checkBoxs.get(i).setEnabled(!checkBoxs.get(i).isSelected());
+        }
     }
 
 
