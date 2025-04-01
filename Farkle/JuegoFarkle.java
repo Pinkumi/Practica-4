@@ -2,6 +2,11 @@ package Farkle;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import javax.swing.*;
 
 public class JuegoFarkle {
@@ -20,6 +25,7 @@ public class JuegoFarkle {
     //botones
     JButton botonLanzar = new JButton();
     JButton botonBanca = new JButton();
+    JButton botonBloquear = new JButton();
 
     //labels Dados
     JLabel labelDado1 = new JLabel();
@@ -100,10 +106,16 @@ public class JuegoFarkle {
         panelCentral.add(botonLanzar);
 
         // boton de sumar puntos
-        botonBanca.addActionListener(a -> sumarPuntos());
+        botonBanca.addActionListener(a -> AñadirAcumulados());
         botonBanca.setText("Sumar Puntos");
         botonBanca.setBounds(360,170,135,50);
         panelCentral.add(botonBanca);
+
+        //boton de bloquear dados (tambien hace las comparaciones)
+        botonBloquear.addActionListener(a -> bloquearDados());
+        botonBloquear.setText("Bloquear Dados");
+        botonBloquear.setBounds(360,70,135,50);
+        panelCentral.add(botonBloquear);
 
         // labels de los dados
         labelsDados.add(labelDado1);
@@ -168,6 +180,7 @@ public class JuegoFarkle {
 
         //Labels de informacion
         turnoJugador.setText("Jugador: ");
+        turnoJugador.setForeground(Color.WHITE);
         panelTurno.add(turnoJugador);
 
         puntosJugador.setText("");
@@ -198,27 +211,95 @@ public class JuegoFarkle {
         labelDado4.setIcon(dados.get(3).getIcon());
         labelDado5.setIcon(dados.get(4).getIcon());
         labelDado6.setIcon(dados.get(5).getIcon());
-        actualizarInformacion();
-        frame.setVisible(true);
+        botonLanzar.setEnabled(false);
+        botonBloquear.setEnabled(true);
 
-    }
-
-    // lambdas goes Brrrrrr!!!
-    public void sumarPuntos()   //Cambios por la funcion isAValidPlay ya que esa funcion deberia estar en esta clase y no en dado pq solo puede verificar un dado
-    {
-        actualizarCheckboxes();
-        desactivarCheckboxInvalidas();
-        actualizarCheckboxes();
-        if(hayJugadaValida(dados)){
-            jugadores.get(turnoQuien).setPuntos(dados.stream().
-                    filter(a -> a.isLocked()).map(a -> a.getValor()).
-                    reduce(0,(a,b) -> a+b));
-            disableCheckBoxes();
-        }else{
-            JOptionPane.showMessageDialog(null,"No gano puntos :(","Farkle",JOptionPane.INFORMATION_MESSAGE);
+        if(Escalera() == 1500)
+        {
+            JOptionPane.showMessageDialog(null, "ESCALERA!!", "Farkle",JOptionPane.INFORMATION_MESSAGE);
+            jugadores.get(turnoQuien).setAcumulados(jugadores.get(turnoQuien).getAcumulados()+1500);
+            botonLanzar.setEnabled(true);
         }
 
+        if(Farkled())
+        {
+            JOptionPane.showMessageDialog(null, "FARKLE!!!", "Farkle",JOptionPane.INFORMATION_MESSAGE);
+            jugadores.get(turnoQuien).setAcumulados(0);
+        }
+        actualizarInformacion();
+        frame.setVisible(true);
     }
+
+    public void AñadirAcumulados()   //Cambios por la funcion isAValidPlay ya que esa funcion deberia estar en esta clase y no en dado pq solo puede verificar un dado
+    {
+        if(jugadores.get(turnoQuien).getAcumulados() == 0)
+        {
+            JOptionPane.showMessageDialog(null,"No gano puntos :(","Farkle",JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            jugadores.get(turnoQuien).sumarAcumulados();
+            jugadores.get(turnoQuien).setAcumulados(0);
+        }
+        actualizarInformacion();
+        turnoQuien += 1;
+        if(turnoQuien > jugadores.size()-1)
+        {
+            turnoQuien = 0;
+        }
+
+        actualizarInformacion();
+        if(jugadores.get(turnoQuien).getPuntos() >= 10000)
+        {
+            JOptionPane.showConfirmDialog(null, "EL JUGADOR ACTUAL HA GANADO","Farkle",JOptionPane.OK_OPTION);
+            frame.dispose();
+        }
+
+        for(int i = 0; i<dados.size();i++)
+        {
+            dados.get(i).setLocked(false);
+            dados.get(i).valid(false);
+            checkBoxs.get(i).setEnabled(true);
+            checkBoxs.get(i).setSelected(false);
+            botonLanzar.setEnabled(true);
+        }
+        botonBloquear.setEnabled(false);
+    }
+
+    public void bloquearDados()
+    {   
+        actualizarCheckboxes();
+        jugadores.get(turnoQuien).setAcumulados(jugadores.get(turnoQuien).getAcumulados() + tresDeUnTipo());
+        jugadores.get(turnoQuien).setAcumulados(jugadores.get(turnoQuien).getAcumulados() + cincosYUnos());
+
+        actualizarInformacion();
+        desactivarCheckboxInvalidas();
+        disableCheckBoxes();
+        actualizarCheckboxes();
+        
+        //revisar si no se obtuvo un hotDice
+        int checkHot = 0;
+        for(int i = 0; i < dados.size();i++)
+        {
+            if(checkBoxs.get(i).isSelected())
+            {
+                checkHot ++;
+            }
+        }
+
+        if(checkHot == 6)
+        {
+            JOptionPane.showMessageDialog(null, "HOTDICE!!","Farkle",JOptionPane.INFORMATION_MESSAGE);
+            jugadores.get(turnoQuien).setAcumulados(jugadores.get(turnoQuien).getAcumulados() + 1000);
+            for(int i = 0; i< checkBoxs.size();i++)
+            {
+                checkBoxs.get(i).setEnabled(true);
+                checkBoxs.get(i).setSelected(false);
+            }
+        }
+
+
+        botonLanzar.setEnabled(true);
+    }
+
 
     public void actualizarCheckboxes()
     {
@@ -256,17 +337,6 @@ public class JuegoFarkle {
 
     }
 
-    public void turnos()
-    {
-            //actualizar la informacion al Jugador actual
-            boolean jugadaTerminada = false;
-            botonLanzar.setEnabled(false);
-            botonLanzar.setEnabled(true);
-            turnoQuien += 1;
-
-
-    }
-
     public void disableCheckBoxes()
     {
         /* 
@@ -295,19 +365,144 @@ public class JuegoFarkle {
 
     }
 
-    // esta no hace nada
-    public void controladorTurno()
-    {
-        int puntajeMasAlto = 0;
-        while (puntajeMasAlto < 10000)
-        {
-            turnos();
+    public int tresDeUnTipo() {
+        int contador = 0;
+        int valorRepetido = -1;  // Para almacenar el valor de los dados repetidos
+    
+        // Primero, vamos a buscar si hay tres dados del mismo valor
+        for (int i = 0; i < dados.size(); i++) {
+            if (dados.get(i).isLocked() && !dados.get(i).isAValidPlay()) {
+                for (int j = i + 1; j < dados.size(); j++) {
+                    if (dados.get(i).getValor() == dados.get(j).getValor() && dados.get(j).isLocked() && !dados.get(j).isAValidPlay()) {
+                        for (int k = j + 1; k < dados.size(); k++) {
+                            if (dados.get(i).getValor() == dados.get(k).getValor() && dados.get(k).isLocked() && !dados.get(k).isAValidPlay()) {
+                                // Se encontramos tres dados con el mismo valor
+                                valorRepetido = dados.get(i).getValor();
+                                contador = 3;  // Marcamos que hemos encontrado tres dados
+    
+                                // Ahora, marcamos los tres dados como válidos
+                                dados.get(i).valid(true);
+                                dados.get(j).valid(true);
+                                dados.get(k).valid(true);
+                                break;
+                            }
+                        }
+                    }
+                    if (contador == 3) break; // Si ya hemos encontrado los tres dados, rompemos el ciclo
+                }
+            }
+            if (contador == 3) break; // Si ya hemos encontrado los tres dados, rompemos el ciclo
         }
+    
+        // Si encontramos tres dados del mismo valor, devolvemos los puntos
+        if (contador == 3 && valorRepetido == 1) {
+            return 1000;
+        } else if (contador == 3) {
+            return valorRepetido * 100;
+        }
+    
+        // Si no encontramos tres dados, devolvemos 0
+        return 0;
+    }
+    
+    
+
+
+
+    public int cincosYUnos()
+    {
+        int puntos = 0;
+        for(int i = 0; i< dados.size();i++)
+        {
+            if(dados.get(i).getValor() == 5 && dados.get(i).isLocked() && !dados.get(i).isAValidPlay())
+            {
+                dados.get(i).valid(true);
+                checkBoxs.get(i).setEnabled(false);
+                puntos += 50;
+
+            } else if(dados.get(i).getValor() == 1 && dados.get(i).isLocked() && !dados.get(i).isAValidPlay())
+            {
+                dados.get(i).valid(true);
+                checkBoxs.get(i).setEnabled(false);
+                puntos += 100;
+
+            } 
+            
+        }
+
+        return puntos;
     }
 
-    public void encontrarElPuntajeMasAlto()
-    {
 
+    public int Escalera()
+    {
+        // esto solo es posible con todos los dados, por lo tanto primero revisamos eso
+        for(int i = 0; i<dados.size();i++)
+        {
+            if(checkBoxs.get(i).isSelected() == true)
+            {
+                return 0;
+            }
+        }
+
+        // una vez descartamos eso, podemos pasar a revisar la escalera
+        // Paso 1: Filtrar los dados no bloqueados y obtener un Stream de sus valores
+        List<Integer> valores = dados.stream() 
+            .map(dado -> dado.valor)       // Extrae el valor de cada dado
+            .collect(Collectors.toList());  // Recoge los resultados en una lista
+        
+        // Paso 2: Si hay menos de 6 dados no bloqueados, no puede haber escalera
+        if (valores.size() != 6) {
+            return 0;
+        }
+        
+        // Paso 3: Ordenar los valores
+        valores.sort(Comparator.naturalOrder());
+        
+        // Paso 4: Comprobar si los valores son consecutivos
+        for (int i = 1; i < valores.size(); i++) {
+            if (valores.get(i) != valores.get(i - 1) + 1) {
+                return 0;  // Si no son consecutivos, no es una escalera
+            }
+        }
+
+          // Si pasamos todas las comprobaciones, es una escalera
+        return 1500;
+    }
+
+    public boolean Farkled()
+    {
+        boolean farkled = true;
+        // hay almenos algun 1 o un 5
+        for(int i = 0; i<dados.size();i++)
+        {
+            if(dados.get(i).getValor() == 1 && !dados.get(i).isLocked())
+            {
+                farkled = false;
+            } else if (dados.get(i).getValor() == 5 && !dados.get(i).isLocked()) {
+                farkled = false;
+            }
+        }
+
+        // hay almenos una secuencia de 3
+         // Usamos un HashMap para contar las veces que aparece cada valor (sin contar los dados bloqueados)
+        HashMap<Integer, Integer> contadorValores = new HashMap<>();
+        
+        // Recorremos todos los dados
+        for (Dado dado : dados) {
+            // Si el dado no está bloqueado
+            if (!dado.isLocked()) {
+                // Incrementamos el contador para el valor del dado
+                contadorValores.put(dado.getValor(), contadorValores.getOrDefault(dado.getValor(), 0) + 1);
+                
+                // Si encontramos que algún valor se repite al menos 3 veces
+                if (contadorValores.get(dado.getValor()) >= 3) {
+                    farkled = false;  // Si se encuentra, retornamos true
+                }
+            }
+        }
+
+        return farkled;
     }
 
 }

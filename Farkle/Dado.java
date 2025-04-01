@@ -17,6 +17,7 @@ public class Dado {
         Random rnd = new Random();
         boolean locked = false;
         boolean validPlay = false;
+        boolean used = false;
     Dado()
     {
         
@@ -79,19 +80,20 @@ public class Dado {
         locked = estado;
     }
 
-    /*public boolean isAValidPlay()
+    public boolean isAValidPlay()
     {
         // puedes poner aqui la logica para saber si es una jugada valida (es 1 o 5 o pertenece a una serie)
-        if(valor == 5 || valor == 1)
-        {
-            return true;
-        }
-        return false;
-    }*/
+        return validPlay;
+    }
 
     public void valid(boolean set)
     {
         validPlay = set;
+    }
+
+    public void setUsed(boolean nUsed)
+    {
+        used = nUsed;
     }
 
 }
