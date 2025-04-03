@@ -34,10 +34,11 @@ public class JuegoFarkle {
     JLabel labelDado4 = new JLabel();
     JLabel labelDado5 = new JLabel();
     JLabel labelDado6 = new JLabel();
+    JLabel tablaDValores = new JLabel();
     ArrayList<JLabel> labelsDados = new ArrayList<JLabel>();
 
     // Checkboxes para loquear dados
-    /* 
+    /*
     JCheckBox dado1Check = new JCheckBox();
     JCheckBox dado2Check = new JCheckBox();
     JCheckBox dado3Check = new JCheckBox();
@@ -57,12 +58,12 @@ public class JuegoFarkle {
 
     JuegoFarkle(Integer NPlayers)
     {
-        
+
         for(int i=0;i<NPlayers; i++)
         {
             jugadores.add(new Jugador());
         }
-        
+
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(768,480);
         frame.setLayout(null);
@@ -76,7 +77,7 @@ public class JuegoFarkle {
         Dado dado5 = new Dado();
         Dado dado6 = new Dado();
 
-        
+
         dados.add(dado1);
         dados.add(dado2);
         dados.add(dado3);
@@ -104,18 +105,20 @@ public class JuegoFarkle {
         botonLanzar.setText("Lanzar Dados");
         botonLanzar.setBounds(163,340,125,20);
         panelCentral.add(botonLanzar);
+        botonLanzar.setEnabled(true);
 
         // boton de sumar puntos
         botonBanca.addActionListener(a -> AñadirAcumulados());
         botonBanca.setText("Sumar Puntos");
         botonBanca.setBounds(360,170,135,50);
         panelCentral.add(botonBanca);
-
+        botonBanca.setEnabled(false);
         //boton de bloquear dados (tambien hace las comparaciones)
         botonBloquear.addActionListener(a -> bloquearDados());
         botonBloquear.setText("Bloquear Dados");
         botonBloquear.setBounds(360,70,135,50);
         panelCentral.add(botonBloquear);
+        botonBloquear.setEnabled(false);
 
         // labels de los dados
         labelsDados.add(labelDado1);
@@ -125,13 +128,15 @@ public class JuegoFarkle {
         labelsDados.add(labelDado5);
         labelsDados.add(labelDado6);
 
-        
+
+
         labelDado1.setIcon(dados.get(0).getIcon());
         labelDado2.setIcon(dados.get(1).getIcon());
         labelDado3.setIcon(dados.get(2).getIcon());
         labelDado4.setIcon(dados.get(3).getIcon());
         labelDado5.setIcon(dados.get(4).getIcon());
         labelDado6.setIcon(dados.get(5).getIcon());
+        // ImageIcon iconTabla = new ImageIcon("Farkle/ForFarkle/Sprite-0001.png");
 
         //poner su ubicacion
         int index = 0;
@@ -142,7 +147,7 @@ public class JuegoFarkle {
                 index ++;
             }
         }
-        
+
         labelsDados.stream().forEach(a -> panelCentral.add(a));
 
         // colocar las checkboxes
@@ -156,7 +161,7 @@ public class JuegoFarkle {
                 crear ++;
             }
         }
-        /* 
+        /*
         dado1Check.setBounds(128,64,25,25);
         dado2Check.setBounds(128,164,25,25);
         dado3Check.setBounds(128,264,25,25);
@@ -164,12 +169,12 @@ public class JuegoFarkle {
         dado5Check.setBounds(328,164,25,25);
         dado6Check.setBounds(328,264,25,25);
         */
-        
+
         for(int i = 0;i<checkBoxs.size();i++)
         {
             panelCentral.add(checkBoxs.get(i));
         }
-        /* 
+        /*
         panelCentral.add(dado1Check);
         panelCentral.add(dado2Check);
         panelCentral.add(dado3Check);
@@ -177,7 +182,11 @@ public class JuegoFarkle {
         panelCentral.add(dado5Check);
         panelCentral.add(dado6Check);
         */
-
+        //rollDados();
+        for(int i = 0; i< checkBoxs.size();i++)
+        {
+            checkBoxs.get(i).setEnabled(false);
+        }
         //Labels de informacion
         turnoJugador.setText("Jugador: ");
         turnoJugador.setForeground(Color.WHITE);
@@ -196,6 +205,8 @@ public class JuegoFarkle {
         frame.add(panelCentral);
         frame.setVisible(true);
 
+
+
     }
 
 
@@ -203,7 +214,19 @@ public class JuegoFarkle {
     public void rollDados()
     {
         actualizarCheckboxes();
+        //activar checks q se puedan activar
+        checkBoxs.stream().filter( a-> !a.isEnabled() && !a.isSelected()).
+                forEach(a-> a.setEnabled(true));
+
         dados.stream().filter(a -> !a.isLocked()).forEach(a -> a.lanzar());
+
+        //region Codigo para forzar escalera
+//        for(int i = 0; i<dados.size();i++){
+//            dados.get(i).setValor(i+1);
+//        }
+        //endregion
+
+
         dados.stream().forEach(a -> System.out.println(a.getValor()));
         labelDado1.setIcon(dados.get(0).getIcon());
         labelDado2.setIcon(dados.get(1).getIcon());
@@ -213,11 +236,13 @@ public class JuegoFarkle {
         labelDado6.setIcon(dados.get(5).getIcon());
         botonLanzar.setEnabled(false);
         botonBloquear.setEnabled(true);
+        botonBanca.setEnabled(true);
 
         if(Escalera() == 1500)
         {
             JOptionPane.showMessageDialog(null, "ESCALERA!!", "Farkle",JOptionPane.INFORMATION_MESSAGE);
             jugadores.get(turnoQuien).setAcumulados(jugadores.get(turnoQuien).getAcumulados()+1500);
+            rollDados();
             botonLanzar.setEnabled(true);
         }
 
@@ -225,6 +250,8 @@ public class JuegoFarkle {
         {
             JOptionPane.showMessageDialog(null, "FARKLE!!!", "Farkle",JOptionPane.INFORMATION_MESSAGE);
             jugadores.get(turnoQuien).setAcumulados(0);
+            botonLanzar.setEnabled(false);
+            botonBloquear.setEnabled(false);
         }
         actualizarInformacion();
         frame.setVisible(true);
@@ -240,6 +267,19 @@ public class JuegoFarkle {
             jugadores.get(turnoQuien).setAcumulados(0);
         }
         actualizarInformacion();
+        if(jugadores.get(turnoQuien).getPuntos() >= 10000)
+        {   int botonSalir = JOptionPane.YES_NO_OPTION;
+            JOptionPane.showMessageDialog(null, "El Jugador "+ (turnoQuien+1) +" ha ganado!","Farkle", JOptionPane.INFORMATION_MESSAGE);
+            if(JOptionPane.showConfirmDialog(null, "Desea seguir jugando? ","Farkle",botonSalir) == JOptionPane.YES_OPTION){
+                //Salir o seguir jugando
+                reiniciarPartida();
+                return;
+            }else{
+                System.exit(0);
+            }
+            frame.dispose();
+        }
+
         turnoQuien += 1;
         if(turnoQuien > jugadores.size()-1)
         {
@@ -247,11 +287,7 @@ public class JuegoFarkle {
         }
 
         actualizarInformacion();
-        if(jugadores.get(turnoQuien).getPuntos() >= 10000)
-        {
-            JOptionPane.showConfirmDialog(null, "EL JUGADOR ACTUAL HA GANADO","Farkle",JOptionPane.OK_OPTION);
-            frame.dispose();
-        }
+
 
         for(int i = 0; i<dados.size();i++)
         {
@@ -262,10 +298,11 @@ public class JuegoFarkle {
             botonLanzar.setEnabled(true);
         }
         botonBloquear.setEnabled(false);
+        rollDados();
     }
 
     public void bloquearDados()
-    {   
+    {
         actualizarCheckboxes();
         jugadores.get(turnoQuien).setAcumulados(jugadores.get(turnoQuien).getAcumulados() + tresDeUnTipo());
         jugadores.get(turnoQuien).setAcumulados(jugadores.get(turnoQuien).getAcumulados() + cincosYUnos());
@@ -274,7 +311,7 @@ public class JuegoFarkle {
         desactivarCheckboxInvalidas();
         disableCheckBoxes();
         actualizarCheckboxes();
-        
+
         //revisar si no se obtuvo un hotDice
         int checkHot = 0;
         for(int i = 0; i < dados.size();i++)
@@ -289,9 +326,10 @@ public class JuegoFarkle {
         {
             JOptionPane.showMessageDialog(null, "HOTDICE!!","Farkle",JOptionPane.INFORMATION_MESSAGE);
             jugadores.get(turnoQuien).setAcumulados(jugadores.get(turnoQuien).getAcumulados() + 1000);
+            botonBloquear.setEnabled(false);
             for(int i = 0; i< checkBoxs.size();i++)
             {
-                checkBoxs.get(i).setEnabled(true);
+                checkBoxs.get(i).setEnabled(false);
                 checkBoxs.get(i).setSelected(false);
             }
         }
@@ -303,14 +341,15 @@ public class JuegoFarkle {
 
     public void actualizarCheckboxes()
     {
-        /* 
-        dados.get(0).setLocked(dado1Check.isSelected());
-        dados.get(1).setLocked(dado2Check.isSelected());
-        dados.get(2).setLocked(dado3Check.isSelected());
-        dados.get(3).setLocked(dado4Check.isSelected());
-        dados.get(4).setLocked(dado5Check.isSelected());
-        dados.get(5).setLocked(dado6Check.isSelected());
-        */
+        //region checkboxes sin arraylist
+//        dados.get(0).setLocked(dado1Check.isSelected());
+//        dados.get(1).setLocked(dado2Check.isSelected());
+//        dados.get(2).setLocked(dado3Check.isSelected());
+//        dados.get(3).setLocked(dado4Check.isSelected());
+//        dados.get(4).setLocked(dado5Check.isSelected());
+//        dados.get(5).setLocked(dado6Check.isSelected());
+        //endregion
+
         for(int i = 0;i<dados.size();i++)
         {
             dados.get(i).setLocked(checkBoxs.get(i).isSelected());
@@ -319,14 +358,15 @@ public class JuegoFarkle {
 
     public void desactivarCheckboxInvalidas() //Esta tambien se tiene que cambiar por la funcion.
     {
-        /* 
-        dado1Check.setSelected(dados.get(0).isAValidPlay());
-        dado2Check.setSelected(dados.get(1).isAValidPlay());
-        dado3Check.setSelected(dados.get(2).isAValidPlay());
-        dado4Check.setSelected(dados.get(3).isAValidPlay());
-        dado5Check.setSelected(dados.get(4).isAValidPlay());
-        dado6Check.setSelected(dados.get(5).isAValidPlay());
-        */
+        //region check validaciones sin array
+//        dado1Check.setSelected(dados.get(0).isAValidPlay());
+//        dado2Check.setSelected(dados.get(1).isAValidPlay());
+//        dado3Check.setSelected(dados.get(2).isAValidPlay());
+//        dado4Check.setSelected(dados.get(3).isAValidPlay());
+//        dado5Check.setSelected(dados.get(4).isAValidPlay());
+//        dado6Check.setSelected(dados.get(5).isAValidPlay());
+        // endregion
+
         // revisar que sea jugada valida y no este seleccionado
 
         // cambiar este metodo por otro
@@ -339,7 +379,7 @@ public class JuegoFarkle {
 
     public void disableCheckBoxes()
     {
-        /* 
+        /*
         dado1Check.setEnabled(!dado1Check.isSelected());
         dado2Check.setEnabled(!dado2Check.isSelected());
         dado3Check.setEnabled(!dado3Check.isSelected());
@@ -354,10 +394,11 @@ public class JuegoFarkle {
     }
 
 
-    
+
 
     public void actualizarInformacion()
     {
+
         turnoJugador.setText("Jugador: "+(turnoQuien+1));
         puntosJugador.setText("El jugador tiene: "+jugadores.get(turnoQuien).getPuntos()+" puntos");
         puntosAcumulados.setText("En esta ronda lleva "+jugadores.get(turnoQuien).getAcumulados()+" puntos");
@@ -365,10 +406,11 @@ public class JuegoFarkle {
 
     }
 
+
     public int tresDeUnTipo() {
         int contador = 0;
         int valorRepetido = -1;  // Para almacenar el valor de los dados repetidos
-    
+
         // Primero, vamos a buscar si hay tres dados del mismo valor
         for (int i = 0; i < dados.size(); i++) {
             if (dados.get(i).isLocked() && !dados.get(i).isAValidPlay()) {
@@ -379,7 +421,7 @@ public class JuegoFarkle {
                                 // Se encontramos tres dados con el mismo valor
                                 valorRepetido = dados.get(i).getValor();
                                 contador = 3;  // Marcamos que hemos encontrado tres dados
-    
+
                                 // Ahora, marcamos los tres dados como válidos
                                 dados.get(i).valid(true);
                                 dados.get(j).valid(true);
@@ -393,19 +435,19 @@ public class JuegoFarkle {
             }
             if (contador == 3) break; // Si ya hemos encontrado los tres dados, rompemos el ciclo
         }
-    
+
         // Si encontramos tres dados del mismo valor, devolvemos los puntos
         if (contador == 3 && valorRepetido == 1) {
             return 1000;
         } else if (contador == 3) {
             return valorRepetido * 100;
         }
-    
+
         // Si no encontramos tres dados, devolvemos 0
         return 0;
     }
-    
-    
+
+
 
 
 
@@ -426,8 +468,8 @@ public class JuegoFarkle {
                 checkBoxs.get(i).setEnabled(false);
                 puntos += 100;
 
-            } 
-            
+            }
+
         }
 
         return puntos;
@@ -447,18 +489,18 @@ public class JuegoFarkle {
 
         // una vez descartamos eso, podemos pasar a revisar la escalera
         // Paso 1: Filtrar los dados no bloqueados y obtener un Stream de sus valores
-        List<Integer> valores = dados.stream() 
-            .map(dado -> dado.valor)       // Extrae el valor de cada dado
-            .collect(Collectors.toList());  // Recoge los resultados en una lista
-        
+        List<Integer> valores = dados.stream()
+                .map(dado -> dado.valor)       // Extrae el valor de cada dado
+                .collect(Collectors.toList());  // Recoge los resultados en una lista
+
         // Paso 2: Si hay menos de 6 dados no bloqueados, no puede haber escalera
         if (valores.size() != 6) {
             return 0;
         }
-        
+
         // Paso 3: Ordenar los valores
         valores.sort(Comparator.naturalOrder());
-        
+
         // Paso 4: Comprobar si los valores son consecutivos
         for (int i = 1; i < valores.size(); i++) {
             if (valores.get(i) != valores.get(i - 1) + 1) {
@@ -466,7 +508,8 @@ public class JuegoFarkle {
             }
         }
 
-          // Si pasamos todas las comprobaciones, es una escalera
+        // Si pasamos todas las comprobaciones, es una escalera
+
         return 1500;
     }
 
@@ -485,16 +528,16 @@ public class JuegoFarkle {
         }
 
         // hay almenos una secuencia de 3
-         // Usamos un HashMap para contar las veces que aparece cada valor (sin contar los dados bloqueados)
+        // Usamos un HashMap para contar las veces que aparece cada valor (sin contar los dados bloqueados)
         HashMap<Integer, Integer> contadorValores = new HashMap<>();
-        
+
         // Recorremos todos los dados
         for (Dado dado : dados) {
             // Si el dado no está bloqueado
             if (!dado.isLocked()) {
                 // Incrementamos el contador para el valor del dado
                 contadorValores.put(dado.getValor(), contadorValores.getOrDefault(dado.getValor(), 0) + 1);
-                
+
                 // Si encontramos que algún valor se repite al menos 3 veces
                 if (contadorValores.get(dado.getValor()) >= 3) {
                     farkled = false;  // Si se encuentra, retornamos true
@@ -503,6 +546,33 @@ public class JuegoFarkle {
         }
 
         return farkled;
+    }
+    public void reiniciarPartida(){
+        for(int i =0; i<jugadores.size();i++){
+            jugadores.get(i).setPuntos(0);
+            jugadores.get(i).setAcumulados(0);
+            turnoQuien = 0;
+        }
+
+        botonBloquear.setEnabled(false);
+        botonBanca.setEnabled(false);
+        for(int i = 0; i<checkBoxs.size();i++){
+            checkBoxs.get(i).setSelected(false);
+            checkBoxs.get(i).setEnabled(false);
+        }
+//        for(int i = 0; i<dados.size();i++){
+//            dados.get(i).setValor(1);
+//            dados.get(i).actualizarIcon();
+//        }
+//        labelDado1.setIcon(dados.get(0).getIcon());
+//        labelDado2.setIcon(dados.get(1).getIcon());
+//        labelDado3.setIcon(dados.get(2).getIcon());
+//        labelDado4.setIcon(dados.get(3).getIcon());
+//        labelDado5.setIcon(dados.get(4).getIcon());
+//        labelDado6.setIcon(dados.get(5).getIcon());
+
+        actualizarInformacion();
+
     }
 
 }
