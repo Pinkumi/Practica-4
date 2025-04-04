@@ -15,6 +15,7 @@ public class JuegoFarkle {
     JLabel label;
     ArrayList<Dado> dados = new ArrayList<Dado>();
     ArrayList<Jugador> jugadores = new ArrayList<Jugador>();
+    ArrayList<JLabel> datosJugadores = new ArrayList<>();
 
     //paneles
     JPanel panelTurno = new JPanel();
@@ -101,6 +102,8 @@ public class JuegoFarkle {
         panelCentral.setBackground(Color.green);
 
         // boton de lanzar dados
+        // todos los dados tienen un lambda dentro del addActionListener(),
+        // de esta manera, al ser presionados, se llama a la funcion que la lambda apunta
         botonLanzar.addActionListener(a -> rollDados());
         botonLanzar.setText("Lanzar Dados");
         botonLanzar.setBounds(163,340,125,20);
@@ -174,14 +177,19 @@ public class JuegoFarkle {
         {
             panelCentral.add(checkBoxs.get(i));
         }
-        /*
-        panelCentral.add(dado1Check);
-        panelCentral.add(dado2Check);
-        panelCentral.add(dado3Check);
-        panelCentral.add(dado4Check);
-        panelCentral.add(dado5Check);
-        panelCentral.add(dado6Check);
-        */
+
+        
+        // ponerl la informacion de los jugadores
+        for(int i = 0; i< jugadores.size();i++)
+        {
+           datosJugadores.add(new JLabel("El jugador "+ (i+1)+" tiene "+ jugadores.get(i).getPuntos()+" puntos")); 
+        }
+        for(int i = 0; i< datosJugadores.size();i++)
+        {
+            panelPuntos.add(datosJugadores.get(i));
+        }
+
+
         //rollDados();
         for(int i = 0; i< checkBoxs.size();i++)
         {
@@ -210,14 +218,14 @@ public class JuegoFarkle {
     }
 
 
-
+    // esta funcion lanza los dados y revisa si se obtuvo escalera o Farkle
     public void rollDados()
     {
         actualizarCheckboxes();
-        //activar checks q se puedan activar
+        //activar checks q se puedan activar y no estan bloqueados
         checkBoxs.stream().filter( a-> !a.isEnabled() && !a.isSelected()).
                 forEach(a-> a.setEnabled(true));
-
+        // este lambda lanza todos los dados que no esten bloqueados
         dados.stream().filter(a -> !a.isLocked()).forEach(a -> a.lanzar());
 
         //region Codigo para forzar escalera
@@ -226,7 +234,7 @@ public class JuegoFarkle {
 //        }
         //endregion
 
-
+        // esta lambda es para debug
         dados.stream().forEach(a -> System.out.println(a.getValor()));
         labelDado1.setIcon(dados.get(0).getIcon());
         labelDado2.setIcon(dados.get(1).getIcon());
@@ -257,7 +265,8 @@ public class JuegoFarkle {
         frame.setVisible(true);
     }
 
-    public void AñadirAcumulados()   //Cambios por la funcion isAValidPlay ya que esa funcion deberia estar en esta clase y no en dado pq solo puede verificar un dado
+        // Este añade los puntos acumulados al puntaje real del jugador actual
+    public void AñadirAcumulados()
     {
         if(jugadores.get(turnoQuien).getAcumulados() == 0)
         {
@@ -301,6 +310,8 @@ public class JuegoFarkle {
         rollDados();
     }
 
+    // este suma los puntos de las jugadas validas dentro de los dados seleccionados
+    // al puntaje acumulado deñ jugador y bloquea los dados validos para no volver a ser usados
     public void bloquearDados()
     {
         actualizarCheckboxes();
@@ -377,16 +388,10 @@ public class JuegoFarkle {
 
     }
 
+    // este metodo es llamado una vez las chechboxes que no son jugadas fueron desSeleccionadas 
+    // automaticamente para evitar errores, luego bloquea las checkboxes para no ser deseleccionadas
     public void disableCheckBoxes()
     {
-        /*
-        dado1Check.setEnabled(!dado1Check.isSelected());
-        dado2Check.setEnabled(!dado2Check.isSelected());
-        dado3Check.setEnabled(!dado3Check.isSelected());
-        dado4Check.setEnabled(!dado4Check.isSelected());
-        dado5Check.setEnabled(!dado5Check.isSelected());
-        dado6Check.setEnabled(!dado6Check.isSelected());
-        */
         for(int i = 0;i<checkBoxs.size();i++)
         {
             checkBoxs.get(i).setEnabled(!checkBoxs.get(i).isSelected());
@@ -395,18 +400,25 @@ public class JuegoFarkle {
 
 
 
-
+    // actaulizar la informacion en pantalla
     public void actualizarInformacion()
     {
 
         turnoJugador.setText("Jugador: "+(turnoQuien+1));
         puntosJugador.setText("El jugador tiene: "+jugadores.get(turnoQuien).getPuntos()+" puntos");
         puntosAcumulados.setText("En esta ronda lleva "+jugadores.get(turnoQuien).getAcumulados()+" puntos");
+        
+        // aqui se pone la informacion de los puntos de los jugadores:
+        for(int i = 0; i<jugadores.size();i++)
+        {
+            datosJugadores.get(i).setText("El jugador "+(i+1)+" tiene "+jugadores.get(i).getPuntos()+" puntos");
+            
+        }
         frame.setVisible(true);
 
     }
 
-
+    // Revisar la jugada 3 of a kind de las reglas estandar de Farkle
     public int tresDeUnTipo() {
         int contador = 0;
         int valorRepetido = -1;  // Para almacenar el valor de los dados repetidos
@@ -450,7 +462,7 @@ public class JuegoFarkle {
 
 
 
-
+    // esta funcion asigna los puntos si seleccionaste un cinco o un uno (3 of a kind tiene prioridad)
     public int cincosYUnos()
     {
         int puntos = 0;
@@ -475,7 +487,7 @@ public class JuegoFarkle {
         return puntos;
     }
 
-
+    // esta es llamada solo al lanzar los dados
     public int Escalera()
     {
         // esto solo es posible con todos los dados, por lo tanto primero revisamos eso
@@ -488,31 +500,32 @@ public class JuegoFarkle {
         }
 
         // una vez descartamos eso, podemos pasar a revisar la escalera
-        // Paso 1: Filtrar los dados no bloqueados y obtener un Stream de sus valores
+        // filta los dados no bloqueados y obtener un Stream de sus valores
         List<Integer> valores = dados.stream()
                 .map(dado -> dado.valor)       // Extrae el valor de cada dado
                 .collect(Collectors.toList());  // Recoge los resultados en una lista
 
-        // Paso 2: Si hay menos de 6 dados no bloqueados, no puede haber escalera
+        // Si hay menos de 6 dados no bloqueados, no puede haber escalera
         if (valores.size() != 6) {
             return 0;
         }
 
-        // Paso 3: Ordenar los valores
+        // Ordenar los valores
         valores.sort(Comparator.naturalOrder());
 
-        // Paso 4: Comprobar si los valores son consecutivos
+        // <Comprobar> si los valores son consecutivos
         for (int i = 1; i < valores.size(); i++) {
             if (valores.get(i) != valores.get(i - 1) + 1) {
                 return 0;  // Si no son consecutivos, no es una escalera
             }
         }
 
-        // Si pasamos todas las comprobaciones, es una escalera
+        // Si pasamos todo lo anterior, si es una escalera
 
         return 1500;
     }
 
+    // revisa si no hay nada de los anteriores (sin afectar los dados como las otras si hacen)
     public boolean Farkled()
     {
         boolean farkled = true;
